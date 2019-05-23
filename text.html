@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <form is="add-todo">
+        <input type="text" value="New todo">
+        <button type="submit">Add</button>
+        <p></p>
+    </form>
+
+    <todo-list>
+    </todo-list>
+
+<script>
+    const h = (name, methods, children) => {
+        const el = document.createElement(name);
+        methods.forEach(method => method(el));
+        children.forEach(child =>
+            el.appendChild(child)
+        )
+        return el;
+    }
+    const idGen = () => Math.random().toString(36).substr(2, 9);
+    const useState = val => {
+        const id = idGen();
+        const get = () => val;
+        const set = val2 => {
+            val = val2;
+            document
+                .querySelectorAll(`[consumes="${id}"`)
+                .forEach(el => 
+                    el.setAttribute('revision', idGen())
+                );
+        }
+        const subscribe = el => {
+            el.setAttribute('consumes', id);
+            el.setAttribute('revision', idGen())
+        }
+
+        return [get, set, subscribe];
+    };
+
+    const [getTodos, setTodos, subscribeTodos] = useState([
+        {text: 'one', checked: false},
+        {text: 'two', checked: false},
+        {text: 'three', checked: false}
+    ]);
+
+    const [getText, setText, subscribeText] = useState('New todo');
+
+    customElements.define('todo-list', class TodoList extends HTMLElement {
+        static get observedAttributes() {
+            return ['revision'];
+        }
+        constructor () {
+            super();
+            subscribeTodos(this);
+            this.render()
+        }
+        attributeChangedCallback() {
+            this.render();
+        }
+        render() {
+            this.innerHTML = '';
+            const todos = getTodos();
+            this.appendChild(
+                h('ul', [],
+                    todos.map(todo => h(
+                        'li', 
+                        [
+                            el => el.addEventListener('click', () => {
+                                todo.checked = !todo.checked;
+                                setTodos(todos);
+                            }),
+                            el => todo.checked && el.classList.add('checked'),
+                            el => el.innerHTML = todo.text
+                        ],
+                        []    
+                    ))
+                )
+            )
+        }
+    });
+
+
+    customElements.define('add-todo', class AddTodo extends HTMLFormElement {
+        static get observedAttributes() {
+            return ['revision'];
+        }
+        constructor () {
+            super();
+            subscribeText(this);
+            const [input, button, p] = this.children;
+
+            input.addEventListener('keyup',
+                ({target: {value}}) => setText(value)
+            );
+
+            this.addEventListener('submit', e => {
+                e.preventDefault();
+                setTodos([{
+                    text: input.value,
+                    checked: false
+                }, ...getTodos()]);
+
+                input.value = '';
+            });
+        }
+        attributeChangedCallback() {
+            const p = this.children[2];
+            p.innerHTML = getText();
+        }
+    }, {extends: 'form'});
+
+    
+</script>
+</body>
+</html>

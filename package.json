@@ -1,0 +1,16 @@
+{
+  "name": "frameworkless-poc",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node index.js"
+  },
+  "author": "cmonagle",
+  "license": "MIT",
+  "dependencies": {
+    "eslint": "^5.16.0"
+  }
+}

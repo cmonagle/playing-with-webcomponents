@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <button is="click-button">x</button>
+    <p is="click-count" count="0"></p>
+
+<script>
+    let count = 0;
+
+    class NewTodo extends HTMLFormElement {
+
+        static get observedAttributes() {
+            return ['count'];
+        }
+
+        attributeChangedCallback() {
+            this.innerHTML = `The count is ${this.getAttribute('count')}`;
+        }
+    }
+
+    class ClickButton extends HTMLButtonElement {
+
+        connectedCallback() {
+            this.addEventListener('click', () => {
+                count = count + 1;
+
+                document.querySelector('p')
+                    .setAttribute('count', count);
+            })
+        }
+    }
+
+    customElements.define('click-count', ClickCount, { extends: 'p' });
+    customElements.define('click-button', ClickButton, { extends: 'button' });
+
+    
+</script>
+</body>
+</html>

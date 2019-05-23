@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<body>
+    <form>
+        <input is="edit-text">
+        <button type="submit">Add Todo</button>
+    </form>
+    <p is="show-text"></p>
+    <ul is="todo-list"></ul>
+<script>
+    const idGen = () => Math.random().toString(36).substr(2, 9);
+
+    function useState(val, id = idGen()) {
+        const get = () => val;
+        const set = val2 => {
+            val = val2;
+            document
+                .querySelectorAll(`[${id}]`)
+                .forEach(el => 
+                    el.setAttribute(id, idGen())
+                );
+        }
+        return [set, id, get];
+    }
+
+    const [setText, textId, getText] = useState('New todo', 'texto');
+    const [setArr, arrId, getArr] = useState(['First todo'], 'arro');
+
+    customElements.define('edit-text', class EditText extends HTMLInputElement {
+
+        handleKeyup({target: {value}}) { setText(value) }
+
+        connectedCallback() {
+            this.addEventListener('keyup', this.handleKeyup);
+        }
+        disconectedCallBack() {
+            this.removeEventListener('keyup', this.handleKeyup)
+        }
+    }, {extends: 'input'});
+
+    //
+    document
+        .querySelector('form')
+        .addEventListener('submit', e => {
+            e.preventDefault();
+            setArr([
+                getText(),
+                ...getArr()
+            ]);
+        }
+    );
+
+    customElements.define('show-text', class ShowText extends HTMLParagraphElement {
+        static get observedAttributes() {
+            return [textId];
+        }
+        constructor() {
+            super();
+            this.setAttribute(textId, '');
+        }
+        attributeChangedCallback() {
+            this.innerHTML = `text: ${getText()}`; 
+        }
+    }, {extends: 'p'});
+
+    customElements.define('todo-list', class ShowText extends HTMLUListElement {
+        static get observedAttributes() {
+                return [arrId];
+        }
+        constructor() {
+            super();
+            this.setAttribute(arrId, '');
+        }
+        attributeChangedCallback() {
+            // this.innerHTML = `text: ${getText()}`; 
+        }
+    }, {extends: 'ul'})
+
+
+</script>
+</body>
+</html>
